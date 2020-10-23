@@ -5,6 +5,7 @@ Utility functions for grabbing user inputs
 import numpy as np
 
 import robosuite as suite
+from robosuite.devices import SenseGlove
 from robosuite.models.robots import *
 from robosuite.robots import *
 import robosuite.utils.transform_utils as T
@@ -157,7 +158,7 @@ def choose_robots(exclude_bimanual=False):
     return list(robots)[k]
 
 
-def input2action(device, robot, active_arm="right", env_configuration=None):
+def input2action(device, robot, active_arm="right", grasp_device=None, env_configuration=None):
     """
     Converts an input from an active device into a valid action sequence that can be fed into an env.step() call
 
@@ -173,6 +174,9 @@ def input2action(device, robot, active_arm="right", env_configuration=None):
             Allows inputs to be converted correctly if the control type (e.g.: IK) is dependent on arm choice.
             Choices are {right, left}
 
+        grasp_device (GraspDevice): A device from which inputs can be converted into gripper actions. Can be Senseglove
+            device class or None (in which case, grasp configurations are read from the device argument).
+
         env_configuration (str or None): Only applicable for multi-armed environments. Allows inputs to be converted
             correctly if the control type (e.g.: IK) is dependent on the environment setup. Options are:
             {bimanual, single-arm-parallel, single-arm-opposed}
@@ -187,6 +191,7 @@ def input2action(device, robot, active_arm="right", env_configuration=None):
 
     """
     state = device.get_controller_state()
+
     # Note: Devices output rotation with x and z flipped to account for robots starting with gripper facing down
     #       Also note that the outputted rotation is an absolute rotation, while outputted dpos is delta pos
     #       Raw delta rotations from neutral user input is captured in raw_drotation (roll, pitch, yaw)
@@ -253,8 +258,19 @@ def input2action(device, robot, active_arm="right", env_configuration=None):
     # map 0 to -1 (open) and map 1 to 1 (closed)
     grasp = 1 if grasp else -1
 
-    # Create action based on action space of individual robot
-    action = np.concatenate([dpos, drotation, [grasp] * gripper_dof])
+    # If we have a grasp device, retrieve the grasp state from it
+    if grasp_device is not None:
+        if hasattr(robot.gripper, 'hand_model'):
+            grasp_state = grasp_device.get_grasp_state()
+            grasp_action = grasp_device.get_grasp_action(grasp_state, robot.gripper.hand_model)
+            action = np.concatenate([dpos, drotation, grasp_action])
+        else:
+            raise Exception(
+                "Error: Unsupported gripper for grasp device -- Gripper does not have property 'hand_model'"
+            )
+    else:
+        # Create action based on action space of individual robot
+        action = np.concatenate([dpos, drotation, [grasp] * gripper_dof])
 
     # Return the action and grasp
     return action, grasp

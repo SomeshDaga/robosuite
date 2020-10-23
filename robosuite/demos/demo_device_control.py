@@ -115,6 +115,7 @@ if __name__ == "__main__":
     parser.add_argument("--toggle-camera-on-click", action="store_true", help="Switch camera angle on gripper click")
     parser.add_argument("--controller", type=str, default="osc", help="Choice of controller. Can be 'ik' or 'osc'")
     parser.add_argument("--device", type=str, default="keyboard")
+    parser.add_argument("--grasp-device", type=str, default="")
     parser.add_argument("--pos-sensitivity", type=float, default=1.5, help="How much to scale position user inputs")
     parser.add_argument("--rot-sensitivity", type=float, default=1.5, help="How much to scale rotation user inputs")
     args = parser.parse_args()
@@ -178,6 +179,24 @@ if __name__ == "__main__":
             "Invalid device choice: choose either 'keyboard' or 'spacemouse'."
         )
 
+    if args.grasp_device == "":
+        grasp_device = None
+    elif args.grasp_device == "senseglove":
+        from robosuite.devices import SGDeviceManager, SenseGlove
+        sg_device_manager = SGDeviceManager()
+        # Get the right glove
+        sg_glove = sg_device_manager.get_glove(True)
+        if sg_glove:
+            grasp_device = SenseGlove(sg_glove, calibration_file='../devices/config/right_senseglove_calibration.yaml')
+        else:
+            raise Exception(
+                "Right SenseGlove could not be detected! Please ensure it is properly connected"
+            )
+    else:
+        raise Exception(
+            "Invalid grasp device choice: choose either '' or ''senseglove"
+        )
+
     while True:
         # Reset the environment
         obs = env.reset()
@@ -200,6 +219,7 @@ if __name__ == "__main__":
             # Get the newest action
             action, grasp = input2action(
                 device=device,
+                grasp_device=grasp_device,
                 robot=active_robot,
                 active_arm=args.arm,
                 env_configuration=args.config

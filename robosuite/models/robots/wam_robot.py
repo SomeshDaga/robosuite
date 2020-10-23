@@ -21,7 +21,7 @@ class WAM(RobotModel):
 
     @property
     def gripper(self):
-        return "WAMBarrettGripper"
+        return "WAMBarrettGripperDexterous"
 
     @property
     def default_controller_config(self):
