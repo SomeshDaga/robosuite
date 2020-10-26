@@ -12,7 +12,8 @@
   "position_limits": null,
   "orientation_limits": null,
   "uncouple_pos_ori": true,
-  "control_delta": true,
+  "control_delta": false,
+  "control_ori": true,
   "interpolation": null,
   "ramp_ratio": 0.2
 }

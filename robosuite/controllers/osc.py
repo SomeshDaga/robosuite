@@ -245,11 +245,17 @@ class OperationalSpaceController(Controller):
         # We only want to update goal orientation if there is a valid delta ori value
         # use math.isclose instead of numpy because numpy is slow
         bools = [0. if math.isclose(elem, 0.) else 1. for elem in scaled_delta[3:]]
-        if sum(bools) > 0.:
+        if self.use_delta and sum(bools) > 0.:
             self.goal_ori = set_goal_orientation(scaled_delta[3:],
                                                  self.ee_ori_mat,
                                                  orientation_limit=self.orientation_limits,
                                                  set_ori=set_ori)
+        elif not self.use_delta:
+            self.goal_ori = set_goal_orientation(scaled_delta[3:],
+                                                 self.ee_ori_mat,
+                                                 orientation_limit=self.orientation_limits,
+                                                 set_ori=set_ori)
+
         self.goal_pos = set_goal_position(scaled_delta[:3],
                                           self.ee_pos,
                                           position_limit=self.position_limits,

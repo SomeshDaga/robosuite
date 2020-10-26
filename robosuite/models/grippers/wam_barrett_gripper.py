@@ -45,7 +45,7 @@ class WAMBarrettGripperBase(GripperModel):
 
     @property
     def init_qpos(self):
-        return np.array([0, 0.5, 0, 0, 0.5, 0, 0.5, 0])
+        return np.array([np.pi / 3, 0.5, 0, np.pi / 3, 0.5, 0, 0.5, 0])
 
     @property
     def _joints(self):

@@ -174,9 +174,13 @@ if __name__ == "__main__":
         from robosuite.devices import SpaceMouse
 
         device = SpaceMouse(pos_sensitivity=args.pos_sensitivity, rot_sensitivity=args.rot_sensitivity)
+    elif args.device == "vivetracker":
+        from robosuite.devices import HTCViveTracker
+
+        device = HTCViveTracker()
     else:
         raise Exception(
-            "Invalid device choice: choose either 'keyboard' or 'spacemouse'."
+            "Invalid device choice: choose either 'keyboard' or 'spacemouse' or 'vivetracker'."
         )
 
     if args.grasp_device == "":
@@ -212,10 +216,16 @@ if __name__ == "__main__":
         # Initialize device control
         device.start_control()
 
-        while True:
-            # Set active robot
-            active_robot = env.robots[0] if args.config == "bimanual" else env.robots[args.arm == "left"]
+        # Set active robot
+        active_robot = env.robots[0] if args.config == "bimanual" else env.robots[args.arm == "left"]
 
+        # If using the Vive Tracker, adjust origin of the position tracking system such that
+        # the absolute coordinates agree with the initial pose of the end-effector
+        if args.device == "vivetracker":
+            tracker_pos = device.get_controller_state()['dpos']
+            device.set_origin(tracker_pos)
+
+        while True:
             # Get the newest action
             action, grasp = input2action(
                 device=device,

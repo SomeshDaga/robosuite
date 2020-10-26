@@ -247,8 +247,8 @@ def input2action(device, robot, active_arm="right", grasp_device=None, env_confi
         # Flip z
         drotation[2] = -drotation[2]
         # Scale rotation for teleoperation (tuned for OSC)
-        drotation *= 75
-        dpos *= 200
+        # drotation *= 75
+        # dpos *= 200
         # Interpret euler angles as (mirrored) scaled axis angle values
         drotation = -drotation
     else:
