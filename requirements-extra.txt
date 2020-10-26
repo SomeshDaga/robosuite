@@ -21,3 +21,6 @@ CPyCppyy==1.10.3
 
 # required for calibration utils
 PyYAML==5.3.1
+
+# required for VR
+openvr==1.14.1501
